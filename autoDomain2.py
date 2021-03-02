@@ -48,34 +48,16 @@ maxx = bounds['maxx']
 maxy = bounds['maxy']
 maxz = bounds['maxz']
 
-#rho = 999.8
-#mu = 1.31e-6
+rho = 999.8
+mu = 1.31e-6
 
 if os.environ.get('SIMULATION_TYPE')=='dummy':
     base_cell_size = chord_length * 0.8
 else:
     base_cell_size = chord_length * 0.8
 
-#near_wall_size = base_cell_size / (2 ** 7)
-
-# Estimate yplus and bl-thickness to get firstLayerThickness and totalLayerHeight 
-# See https://www.cfd-online.com/Wiki/Y_plus_wall_distance_estimation
-# basés sur les propriétés de l'eau
-
 k = 1.5 * (turbulence_intensity * U)**2
 omega = (k**0.5) / (( 0.09**0.25)*chord_length)
-
-# Find nSurfaceLayers to satisfy firstLayerThickness and totalLayerHeight
-#for i in range(minLayers,maxLayers+1):
-  #  layers = [firstLayerThickness * layer_growth ** n for n in range(i)]
-   # totalLayerHeight = sum(layers)
-    #finalLayerThickness = layers[-1]
-    #nSurfaceLayers = len(layers)
-   # if totalLayerHeight >= bl_thickness or finalLayerThickness * maxTransitionRatio >= near_wall_size:
-        #break
-
-#minThickness = firstLayerThickness * .8
-#transition_ratio = near_wall_size/finalLayerThickness
 
 # blockMeshDict
 
@@ -84,7 +66,7 @@ width_dom = 24
 height_dom = 20
 l_caract = min( length_dom / chord_length, height_dom / rocker, width_dom / width)
 
-scale = round((1/l_caract)*100)
+scale = round((1/l_caract)*70)
 
 print('chord_length :', chord_length)
 print('rocker :', rocker )
@@ -96,6 +78,7 @@ print('Ry', height_dom / rocker )
 print('Rz', width_dom / width )
 
 print('scale:', scale )
+
 adjustementx = 0.5
 adjustementwake = 3
 adjustementy = 2
@@ -103,6 +86,7 @@ adjustementz = 2
 
 
 # snappyHexMeshDict
+
 refinement_minx = round(bounds['minx'] - bounds['l_x'] * adjustementwake, 1)
 refinement_miny = round(bounds['miny'] - bounds['l_y'] * adjustementy, 1) 
 refinement_minz = round(bounds['minz'] - bounds['l_z'] * adjustementz, 1)
@@ -112,6 +96,7 @@ refinement_maxy = -refinement_miny
 refinement_maxz = -refinement_minz
 
 #topoSetDict
+
 bx = []; by = [];bz = [];bxx = [];byy = [];bzz = []
 
 bx.append(round(-chord_length * 5, 1))
@@ -121,8 +106,6 @@ bz.append(round(-rocker * 5, 1))
 bxx.append(round(chord_length * 5, 1))
 byy.append(round(width * 5, 1 ))
 bzz.append(round(rocker * 5, 1))
-
-
 
 for i in range(1,5):
 
@@ -160,16 +143,6 @@ with open('system/blockMeshDict', 'r') as file :
     filedata = file.read()
 filedata = filedata.replace('{{scale}}', str(scale))
 
-#filedata = filedata.replace('{{interface_air_ref}}', str(interface_air_ref))
-#filedata = filedata.replace('{{interface_water_ref}}', str(interface_water_ref))
-
-#filedata = filedata.replace('{{n_x}}', str(int(n_x)))
-#filedata = filedata.replace('{{n_y}}', str(int(n_y)))
-#filedata = filedata.replace('{{n_z}}', str(int(n_z)))
-#filedata = filedata.replace('{{n_zref}}', str(int(n_zref)))
-#filedata = filedata.replace('{{zgrading_water}}', str(float(zgrading_water)))
-#filedata = filedata.replace('{{zgrading_air}}', str(float(zgrading_air)))
-
 with open('system/blockMeshDict', 'w') as file:
     file.write(filedata)
 
@@ -186,13 +159,7 @@ filedata = filedata.replace('{{refinement_maxz}}', str(refinement_maxz))
 filedata = filedata.replace('{{x_in_mesh}}', str(x_in_mesh))
 filedata = filedata.replace('{{y_in_mesh}}', str(y_in_mesh))
 filedata = filedata.replace('{{z_in_mesh}}', str(z_in_mesh))
-#filedata = filedata.replace('{{addLayers}}', str(addLayers))
-#filedata = filedata.replace('{{surfaceRefinement}}', str(int(surfaceRefinement)))
-#filedata = filedata.replace('{{boxRefinement}}', str(int(boxRefinement)))
-#filedata = filedata.replace('{{wakeBoxRefinement}}', str(int(wakeBoxRefinement)))
-#filedata = filedata.replace('{{nSurfaceLayers}}', str(int(nSurfaceLayers)))
-#filedata = filedata.replace('{{firstLayerThickness}}', str(firstLayerThickness))
-#filedata = filedata.replace('{{minThickness}}', str(minThickness))
+
 with open('system/snappyHexMeshDict', 'w') as file:
     file.write(filedata)
 
