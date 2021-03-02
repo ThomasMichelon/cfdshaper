@@ -1,0 +1,43 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source the bashrc from openfoam and the user bashrc
+# again, as they are not being picked up from docker.
+source  /opt/openfoam7/etc/bashrc
+export OMPI_MCA_btl_vader_single_copy_mechanism=none
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+runApplication blockMesh
+
+for i in 2 3 4 5 6 
+do
+    runApplication -s $i \
+       topoSet -dict system/topoSetDict.${i}
+
+   runApplication -s $i \
+       refineMesh -dict system/refineMeshDict -overwrite
+done
+
+
+runApplication surfaceFeatures
+
+runApplication decomposePar 
+
+runParallel snappyHexMesh -overwrite 
+runApplication reconstructParMesh -constant
+
+runApplication checkMesh -allGeometry -allTopology
+
+rm -r processor*
+
+rm -f log.decomposePar
+
+runApplication setFields
+
+runApplication decomposePar
+
+runParallel interFoam
+
+runApplication reconstructPar -latestTime
